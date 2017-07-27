@@ -1,6 +1,8 @@
 import numpy as np
 import re
 
+n, m = 0, 0
+
 class Board:
     def __init__(self, verbose = False):
         self.state = [['', '', ''], ['','',''], ['','','']]
@@ -59,6 +61,7 @@ class Board:
         return False
 
 def minimax(board, player, players, max):
+    global m,n # number of complete tree searches, number of pruned trees
 
     if players[0] == player:
         other_player = players[1]
@@ -77,7 +80,8 @@ def minimax(board, player, players, max):
     for i in range(3):
         for j in range(3):
             if board[i][j] == '':
-                if best_score > max:
+                if best_score >= max:
+                    n +=1
                     return best_score
                 board[i][j] = player
                 subscore = - minimax(board, other_player, players, - best_score)
@@ -85,7 +89,10 @@ def minimax(board, player, players, max):
                 if subscore > best_score:
                     best_score = subscore
 
+    m +=1
 
+    if m % 100 == 0:
+        print("number of complete searchs: {}, number of pruned branches: {}".format(m, n))
     return best_score
 
 def find_move(board, player, players):
@@ -130,7 +137,16 @@ def play_game():
     board = Board(verbose=True)
 
     while True:
-        if make_move(board, 'o', players) == -1:
+        print(board)
+
+        print("Play move:")
+
+        move = input()
+        moves = list(map(int, re.findall('\d+', move)))
+        board[moves[0]][moves[1]] = 'o'
+        print(board)
+
+        if make_move(board, 'x', players) == -1:
             break
 
         print(board)
@@ -138,12 +154,6 @@ def play_game():
         if board.check_gameover() == True:
             break
 
-        print("Play move:")
-
-        move = input()
-        moves = list(map(int, re.findall('\d+', move)))
-        board[moves[0]][moves[1]] = 'x'
-        print(board)
 
 if __name__ == "__main__":
     while True:
