@@ -34,6 +34,28 @@ def k_armed_bandit(k, epsilon, iterations, distributions):
 
     return np.asarray(history)
 
+def UCB(k, c, iterations, distributions):
+
+    total_reward = 0
+    history = []
+
+    values = np.zeros(shape=(k, 2))
+    values[:, 1] = 1E-8
+
+    for i in range(iterations):
+        n = randargmax(values[:, 0] + c * np.sqrt(np.log(i + 1) / values[:, 1]))
+        reward = random.gauss(distributions[n][0], distributions[n][1])
+        values[n, 1] += 1
+        values[n, 0] += (reward - values[n, 0]) / values[n, 1]
+        total_reward += reward
+        if i % 50 == 1:
+            history.append(total_reward / i)
+
+    print("Average reward for UCB after {} iterations with c = {}: {}".format(iterations, c,
+                                                                            total_reward / iterations))
+
+    return np.asarray(history)
+
 def randargmax(b):
     return np.random.choice(np.flatnonzero(b == b.max()))
 
@@ -49,12 +71,17 @@ if __name__ == "__main__":
         distributions.append([mean, variance])
 
     epsilons = [0, 0.01, 0.05, 0.1, 0.2]
+    cs = [.5, 1, 2, 3]
 
     for epsilon in epsilons:
         data = k_armed_bandit(10, epsilon, iterations, distributions=distributions)
         plt.plot(np.arange(len(data)), data, label = "epsilon = {:0.2f}".format(epsilon))
 
-    plt.legend(loc='lower right')
+    for c in cs:
+        data = UCB(10, c, iterations, distributions=distributions)
+        plt.plot(np.arange(len(data)), data, label = "c = {:0.2f}".format(c))
+
+    plt.legend(loc='best')
     plt.savefig('epsilon-greedy.png')
     plt.show()
 
