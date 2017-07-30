@@ -56,6 +56,39 @@ def UCB(k, c, iterations, distributions):
 
     return np.asarray(history)
 
+def softmax(arr):
+    return np.exp(arr) / np.sum(np.exp(arr))
+
+def sample(distribution):
+    rand = random.random()
+    s = 0
+    for i, probability in enumerate(distribution):
+        s += probability
+        if s >= rand:
+            return i
+
+def gradient_bandits(k, alpha, iterations, distributions):
+    total_reward = 0
+    history = []
+
+    values = np.zeros(shape=(k, 2))
+
+    for i in range(iterations):
+        probs = softmax(values[:,0])
+        n = sample(probs)
+        reward = random.gauss(distributions[n][0], distributions[n][1])
+        total_reward += reward
+        values[n, 1] += 1
+        values[:, 0] -= alpha*(reward - total_reward / (i + 1)) * probs
+        values[n, 0] += alpha*(reward - total_reward / (i + 1))
+        if i % 50 == 1:
+            history.append(total_reward / i)
+
+    print("Average reward for gradient-bandits after {} iterations with alpha = {}: {}".format(iterations, alpha,
+                                                                              total_reward / iterations))
+
+    return np.asarray(history)
+
 def randargmax(b):
     return np.random.choice(np.flatnonzero(b == b.max()))
 
@@ -70,8 +103,9 @@ if __name__ == "__main__":
         variance = random.uniform(.5, 5)
         distributions.append([mean, variance])
 
-    epsilons = [0, 0.01, 0.05, 0.1, 0.2]
-    cs = [.5, 1, 2, 3]
+    epsilons = [0, 0.01, 0.1]
+    cs = [1, 2]
+    alphas = [0.01, 0.1, 0.2]
 
     for epsilon in epsilons:
         data = k_armed_bandit(10, epsilon, iterations, distributions=distributions)
@@ -80,6 +114,10 @@ if __name__ == "__main__":
     for c in cs:
         data = UCB(10, c, iterations, distributions=distributions)
         plt.plot(np.arange(len(data)), data, label = "c = {:0.2f}".format(c))
+
+    for alpha in alphas:
+        data = gradient_bandits(k, alpha, iterations, distributions=distributions)
+        plt.plot(np.arange(len(data)), data, label="alpha = {:0.2f}".format(alpha))
 
     plt.legend(loc='best')
     plt.savefig('epsilon-greedy.png')
