@@ -23,7 +23,7 @@ discount_factor = .99
 
 total_reward = 0
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 def get_explore_rate(t):
     return max(MIN_EXPLORE_RATE, min(1, 1.0 - math.log10((t + 1) / 25)))
