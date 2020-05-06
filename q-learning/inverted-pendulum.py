@@ -1,3 +1,5 @@
+## adapted from https://github.com/MattChanTK/ai-gym/blob/master/cart_pole/cart_pole_manual_q_theta_only.py
+
 import gym
 import numpy as np
 import random
